@@ -1,24 +1,61 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState} from 'react';
+import './index.scss';
+import { Success } from './components/Success';
+import { Users } from './components/Users';
+
+// Тут список пользователей: https://reqres.in/api/users
 
 function App() {
+    const [users, setUsers] = useState([]);
+    const [invites, setInvites] = useState([]);
+    const [isLoading, setLoading] = useState(true);
+    const [success, setSuccess] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
+
+    React.useEffect(() => {
+        fetch('https://reqres.in/api/users')
+            .then(res => res.json())
+            .then((json) => {
+                setUsers(json.data);
+            })
+            .catch((err) => {
+                console.warn(err);
+                alert('Error')
+            }).finally(() => setLoading(false));
+    },[]);
+
+    const onChangeSearchValue = (e) => {
+        setSearchValue(e.target.value);
+    };
+
+    const onClickInvite = (id) => {
+        if(invites.includes(id)) {
+            setInvites((prev) => prev.filter((_id) => _id !== id));
+        } else {
+            setInvites((prev) => [...prev, id]);
+        }
+    }
+
+    const onClickSendInvites = () => {
+        setSuccess(true);
+    }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div className="App">
+          {success ? (
+              <Success count={invites.length} />
+          ) : (
+              <Users
+                  onChangeSearchValue={onChangeSearchValue}
+                  searchValue={searchValue}
+                  items={users}
+                  isLoading={isLoading}
+                  invites={invites}
+                  onClickInvite={onClickInvite}
+                  onClickSendInvites={onClickSendInvites}
+              />
+          )}
+      </div>
   );
 }
 
